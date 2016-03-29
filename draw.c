@@ -27,7 +27,16 @@
 void add_sphere( struct matrix * points, 
 		 double cx, double cy, double r, 
 		 double step ) {
-  
+  //a dummy is made that calls generete_sphere()
+  struct matrix* dummy = new_matrix(4,1);
+  generate_sphere(dummy, cx,cy, r, step);
+  //dummy holds the points, and they are placd as edges into points,aka the 
+  //correct one when drawing
+  int n;
+  for(n=0; n<(dummy->lastcol) ;n++){
+    add_edge(points, dummy->m[0][n],dummy->m[1][n],dummy->m[2][n],
+	     dummy->m[0][n],dummy->m[1][n],dummy->m[2][n]);
+  }
 }
 
 /*======== void generate_sphere() ==========
@@ -49,7 +58,20 @@ void add_sphere( struct matrix * points,
 void generate_sphere( struct matrix * points, 
 		      double cx, double cy, double r, 
 		      double step ) {
-}    
+  //changes points
+  //[step] should be the number of points generated
+  double k ,m ,x ,y ,z  ;
+  for (k = 0; k < 1; k += step) {
+    for (m    = 0;m < 1; m += step) {
+      x = cos(M_PI*k)*r + cx;
+      //from notes on parametric representation of a sphere
+      y = sin(M_PI*k)*r*cos(2*M_PI*m)+cy;
+      z = sin(M_PI*k)*r*sin(2*M_PI*m);
+      add_point(points, x, y, z);
+    }
+  }
+  
+}   
 
 /*======== void add_torus() ==========
   Inputs:   struct matrix * points
@@ -71,7 +93,18 @@ void generate_sphere( struct matrix * points,
   ====================*/
 void add_torus( struct matrix * points, 
 		double cx, double cy, double r1, double r2, 
-		double step ) {
+		double step ){
+  double /*n*/x, y, z;
+  int n;
+  struct matrix *dummy  = new_matrix(4, 1);
+  generate_torus(dummy, cx, cy, r1, r2, step);
+  for (n = 0; n < dummy->lastcol; n++) {
+    x = dummy->m[0][n];
+    y = dummy->m[1][n];
+    z = dummy->m[2][n];
+    //edges get drawn
+    add_edge(points, x, y, z, x, y, z);
+  }
 }
 
 /*======== void generate_torus() ==========
@@ -92,6 +125,14 @@ void add_torus( struct matrix * points,
 void generate_torus( struct matrix * points, 
 		     double cx, double cy, double r1, double r2, 
 		     double step ) {
+  double x, y, z,k,m;  
+  for (k = 0; k < 1; k += step) {
+    for (m= 0; m < 1; m += step) {
+      x = r1*cos(2*M_PI*k)+ cx;
+      z = (r1*sin(2*M_PI*k) + r2) * sin(2*M_PI*m);
+      y = (r1*sin(2*M_PI*k)+ r2) * cos(2*M_PI*m) + cy;
+      add_point( points, x, y, z );}     
+  }
 }
 
 /*======== void add_box() ==========
@@ -113,6 +154,15 @@ void generate_torus( struct matrix * points,
 void add_box( struct matrix * points,
 	      double x, double y, double z,
 	      double width, double height, double depth ) {
+  //8 edges of a prism are drawn
+    add_edge(points, x, y, z, x, y, z);
+  add_edge(points, x + width, y, z, x + width, y, z);
+  add_edge(points, x, y + height, z, x, y + height, z);
+  add_edge(points, x + width, y + height, z, x + width, y + height, z);
+  add_edge(points, x, y, z + depth, x, y, z + depth);
+  add_edge(points, x + width, y, z + depth, x + width, y, z + depth);
+  add_edge(points, x, y + height, z + depth, x, y + height, z + depth);
+  add_edge(points, x + width, y + height, z + depth, x + width, y + height, z + depth);
 }
   
 /*======== void add_circle() ==========

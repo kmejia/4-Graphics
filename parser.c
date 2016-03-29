@@ -16,7 +16,6 @@ Inputs:   char * filename
           struct matrix * pm,
           screen s
 Returns: 
-
 Goes through the file named filename and performs all of the actions listed in that file.
 The file follows the following format:
      Every command is a single character that takes up a line
@@ -54,16 +53,22 @@ The file follows the following format:
 	    save the screen to a file -
 	    takes 1 argument (file name)
 	 quit: end parsing
-
 See the file script for an example of the file format
-
-
 IMPORTANT MATH NOTE:
 the trig functions int math.h use radian mesure, but us normal
 humans use degrees, so the file will contain degrees for rotations,
 be sure to conver those degrees to radians (M_PI is the constant
 for PI)
 ====================*/
+
+/* The following mus tbe added to the parser:
+	- Clear
+	- Box
+	- Sphere
+	- Torus 
+*/
+
+
 void parse_file ( char * filename, 
                   struct matrix * transform, 
                   struct matrix * pm,
@@ -75,10 +80,12 @@ void parse_file ( char * filename,
   double angle;
   color g;
 
-  g.red = 255;
-  g.green = 0;
+  g.red = 0  ;
+  g.green = 162;
   g.blue = 255;
   
+  double step = .01;
+
   clear_screen(s);
 
   if ( strcmp(filename, "stdin") == 0 ) 
@@ -89,8 +96,7 @@ void parse_file ( char * filename,
   while ( fgets(line, 255, f) != NULL ) {
     line[strlen(line)-1]='\0';
     //printf(":%s:\n",line);
-    double x, y, z, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
-   
+    double x, y, z, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, h, w, d, r, r1, r2;
     
     if ( strncmp(line, "line", strlen(line)) == 0 ) {
       //      printf("LINE!\n");
@@ -101,6 +107,35 @@ void parse_file ( char * filename,
       add_edge(pm, x, y, z, x1, y1, z1);
       // printf( "%lf %lf %lf %lf %lf %lf\n", x, y, z, x1, y1, z1);
     }
+
+    // These things are new
+    else if ( strncmp(line, "clear", strlen(line)) == 0 ) {
+    	//printf("CLEAR\n");
+    	struct matrix *temp = new_matrix(4,4);
+    	pm = temp;
+    	// Note: I need to free the memory from the old 
+    	// pm!!!
+    	//free_matrix(temp);
+    	//pm = new_matrix(4,4);
+    }
+    else if ( strncmp(line, "box", strlen(line)) == 0 ) {
+      fgets(line, 255, f);
+      sscanf(line, "%lf %lf %lf %lf %lf %lf", &x, &y, &z, &h, &w, &d);	
+      add_box(pm, x, y, z, h, w, d);
+    }
+    else if( strncmp(line, "sphere", strlen(line)) == 0 ){
+	    fgets(line, 255, f);
+      sscanf(line, "%lf %lf %lf", &x, &y, &r);
+      //generate_sphere(pm, x, y, r, step);
+      add_sphere(pm, x, y, r, step);
+    }
+    else if( strncmp(line, "torus", strlen(line)) == 0 ){
+      fgets(line, 255, f);
+      sscanf(line, "%lf %lf %lf %lf", &x, &y, &r1, &r2);
+      add_torus(pm, x, y, r1, r2, step);
+    }
+    // End of new things
+
     else if ( strncmp(line, "circle", strlen(line)) == 0 ) {
       //printf("CIRCLE\n");
       fgets(line, 255, f);
@@ -191,7 +226,7 @@ void parse_file ( char * filename,
       return;
     }
     else {
-      printf("Invalid command\n");
+      printf("Invalid command: %s\n", line);
     }
   }
   
@@ -199,5 +234,3 @@ void parse_file ( char * filename,
   fclose(f);
   //printf("END PARSE\n");
 }
-
-  
